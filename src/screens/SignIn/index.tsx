@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {Container, Header, Title, SubTitle, Footer, Form} from './styles';
 import { StatusBar, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, Alert } from 'react-native';
 import Button from '../../components/Button'
@@ -8,6 +8,8 @@ import { useTheme } from 'styled-components';
 import * as Yup from 'yup'
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../hooks/auth';
+
+/* import {database} from '../../database'//isso é so pra ter certeza q esta tudo funcionando */
 
 const SignIn = () => {
    const [email, setEmail] = useState('')
@@ -37,6 +39,15 @@ const SignIn = () => {
    const handleNewAccount = () => {
       navigation.navigate('SignUpFirstStep')
    }
+
+   /* useEffect(() => {
+      async function loadData() {
+         const usersCollection = database.get('users')
+         const users = usersCollection.query().fetch()
+         console.log(users)//tem que mostrar os logs das tabelas. No final retornar um vetor vazio, pois nao tem nenhum usuário cadastrado na aplicação
+      }
+      loadData()
+   }, [])//isso é so pra ter certeza q esta tudo funcionando */
 
    return (
       <KeyboardAvoidingView behavior='position' enabled>{/* esse dai é para quando abrir o teclado os outros campos flutuarem, ou seja, subirem para q o usuário ainda consiga ver td */}

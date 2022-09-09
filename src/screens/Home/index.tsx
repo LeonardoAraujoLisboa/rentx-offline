@@ -48,15 +48,19 @@ const Home = () => {
       navigation.navigate('CarDetails', {car})
    }
 
-   const getCars = async () => {
+   const getCars = async (isMounted: boolean) => {
       try {
          setLoading(true);
          const res = await api.get('/cars');
-         setCars(res.data);
-         setLoading(false);
+         if(isMounted) {
+            setCars(res.data);//TEM QUE ENVOLVER EM TODOS OS ESTADOS
+            setLoading(false);
+         }
          console.log('ola', res)
       } catch(error) {
-         setLoading(false);
+         if(isMounted) {
+            setLoading(false);
+         }
          console.log(error);
       }
    }
@@ -66,8 +70,36 @@ const Home = () => {
    } */
 
    useEffect(() => {
-      getCars();
+      let isMounted = true
+      getCars(isMounted);
+      return () => {
+         isMounted = false
+      }//isso dai resolve o erro de performace no react do elemento desmontado
    }, [])
+
+   /* useEffect(() => {
+      let isMounted = true
+      const getCars = async () => {
+         try {
+            setLoading(true);
+            const res = await api.get('/cars');
+            if(isMounted) {
+               setCars(res.data);
+            }
+            setLoading(false);
+            console.log('ola', res)
+         } catch(error) {
+            if(isMounted) {
+               setLoading(false);
+            }
+            console.log(error);
+         }
+      }
+      getCars()
+      return () => {
+         isMounted = false
+      }
+   }, []) OOOOUUU PODE SER ASSIM */
 
    /* useEffect(() => {
       BackHandler.addEventListener('hardwareBackPress', () => {

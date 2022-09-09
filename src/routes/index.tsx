@@ -11,7 +11,7 @@ const routes = () => {
 
    return (
       <NavigationContainer>
-          {user ? <AppTabRoutes /> : <AuthRoutes />}
+          {user.id ? <AppTabRoutes /> : <AuthRoutes />}
       </NavigationContainer>
    );
 }
