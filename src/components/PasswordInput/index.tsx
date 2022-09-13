@@ -37,7 +37,7 @@ const PasswordInput = ({iconName, value, ...rest}: InputProps) => {
         <IconContainer isFocused={isFocused}>
             <Feather name={iconName} size={24} color={isFocused ? theme.colors.main : isFilled ? theme.colors.main : theme.colors.text_detail} />
         </IconContainer>
-        <InputText isFocused={isFocused} onFocus={handleFocused} onBlur={handleFilled} secureTextEntry={isPasswordVisible} {...rest} />
+        <InputText isFocused={isFocused} onFocus={handleFocused} onBlur={handleFilled} secureTextEntry={isPasswordVisible} autoCorrect={false} {...rest} />
         <BorderlessButton onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
           <IconContainer>
             <Feather name={isPasswordVisible ? 'eye' : 'eye-off'} size={24} color={theme.colors.text_detail} />

@@ -6,7 +6,7 @@ import { TextInputProps } from 'react-native';
 
 interface InputProps extends TextInputProps {
     iconName: React.ComponentProps<typeof Feather>['name']//esse colchete é para pegar so os nomes
-    value: string;
+    value?: string;
 }
 
 const Input = ({iconName, value, ...rest}: InputProps) => {

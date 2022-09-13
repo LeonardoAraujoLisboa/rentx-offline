@@ -3,7 +3,7 @@ import styled, { css } from "styled-components/native";
 import {TextInput} from 'react-native'
 
 interface ContainerProps {
-    isFocused: Boolean;
+    isFocused: boolean;
 }
 
 export const Container = styled.View`
