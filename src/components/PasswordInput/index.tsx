@@ -7,7 +7,7 @@ import { BorderlessButton } from "react-native-gesture-handler";
 
 interface InputProps extends TextInputProps {
     iconName: React.ComponentProps<typeof Feather>['name'];//esse colchete é para pegar so os nomes
-    value: string;
+    value?: string;
 }
 
 const PasswordInput = ({iconName, value, ...rest}: InputProps) => {

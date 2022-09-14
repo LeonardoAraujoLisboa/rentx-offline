@@ -21,6 +21,8 @@ interface SignCredentials {
 interface AuthContextData {
     user: User;
     signIn: (credentials: SignCredentials) => Promise<void>;
+    signOut: () => Promise<void>;
+    updateUser: (user: User) => Promise<void>;
 }
 
 interface AuthProviderProps {
@@ -54,6 +56,51 @@ const AuthProvider = ({children}: AuthProviderProps) => {
                 })
             })
             setData({...user, token})
+            /* const userCollection = database.get<ModelUser>('users')
+            await database.write(async () => {
+                const dataUser = await userCollection.create((newUser) => {
+                    newUser.user_id = user.id
+                    newUser.name = user.name
+                    newUser.email = user.email
+                    newUser.driver_license = user.driver_license
+                    newUser.avatar = user.avatar
+                    newUser.token = token
+                })
+            const userData = dataUser._raw as unknown as User
+            setData(userData)
+            }) quando eu rodar a aplicação, caso dê erro faça isso*/
+        } catch(error) {
+            throw new Error(`${error}`)
+        }
+    }
+
+    /* as 3 funções salvam as informções localmente */
+
+    const signOut = async () => {
+        try {
+            const userCollection = database.get<ModelUser>('users')
+            await database.write(async () => {
+                const userSelected = await userCollection.find(data.id)
+                await userSelected.destroyPermanently()
+            })
+            setData({} as User)
+        } catch(error) {
+            throw new Error(`${error}`)
+        }
+    }
+
+    const updateUser = async (user: User) => {
+        try {
+            const userCollection = database.get<ModelUser>('users')
+            await database.write(async () => {
+                const userSelected = await userCollection.find(user.id)
+                await userSelected.update((userData) => {
+                    userData.name = user.name,
+                    userData.driver_license = user.driver_license,
+                    userData.avatar = user.avatar
+                })
+            })
+            setData(user)
         } catch(error) {
             throw new Error(`${error}`)
         }
@@ -75,7 +122,7 @@ const AuthProvider = ({children}: AuthProviderProps) => {
     }, [])
 
     return (
-        <AuthContext.Provider value={{user: data, signIn}}>
+        <AuthContext.Provider value={{user: data, signIn, signOut, updateUser}}>
             {children}
         </AuthContext.Provider>
     )
