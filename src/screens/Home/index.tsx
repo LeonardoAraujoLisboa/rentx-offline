@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/core';
 import React, { useEffect, useState } from 'react';
-import { StatusBar } from 'react-native';
+import { Alert, StatusBar } from 'react-native';
 import { RFValue } from 'react-native-responsive-fontsize';
 import Logo from '../../assets/logo.svg';
 import Car from '../../components/Car';
@@ -9,10 +9,12 @@ import { CarDTO } from '../../dtos/CarDTO';
 import api from '../../services/api';
 import getAccessoryIcon from '../../utils/getAccessoryIcon';
 import {Container, Header, HeaderContent, TotalCars, CarList} from './styles';
+/* import {useNetInfo} from '@react-native-community/netinfo' */
 /* import {RectButton, PanGestureHandler esse ultimo identifica quando o usuario ta clicando e tentando arrastar} from 'react-native-gesture-handler' */
 
 const Home = () => {
   /*  const theme = useTheme(); */
+   const netInfo = useNetInfo()
    const navigation = useNavigation<any>();
    const [cars, setCars] = useState<CarDTO[]>([]);
    const [loading, setLoading] = useState(Boolean)
@@ -76,6 +78,14 @@ const Home = () => {
          isMounted = false
       }//isso dai resolve o erro de performace no react do elemento desmontado
    }, [])
+
+   /* useEffect(() => {
+      if (netInfo.isConnected) {
+         Alert.alert('Você está conectado')
+      } else {
+         Alert.alert('Você está off')
+      }
+   }, [netInfo.isConnected]) so fiz pra saber se esta online ou nao */
 
    /* useEffect(() => {
       let isMounted = true
