@@ -1,10 +1,12 @@
 import { appSchema } from "@nozbe/watermelondb";
+import { carSchema } from "./carSchema";
 import { userSchema } from "./userSchema";
 
 const schemas = appSchema({
-    version: 1,
+    version: 2,//quando vc colocar mais uma tabela vc altera a versao do banco q ele ja sobe essa alteração
     tables: [
-        userSchema
+        userSchema,
+        carSchema
     ]
 })
 
