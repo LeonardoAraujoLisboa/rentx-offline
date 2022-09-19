@@ -14,7 +14,7 @@ import {Container, Header, HeaderContent, TotalCars, CarList} from './styles';
 
 const Home = () => {
   /*  const theme = useTheme(); */
-   const netInfo = useNetInfo()
+   /* const netInfo = useNetInfo() */
    const navigation = useNavigation<any>();
    const [cars, setCars] = useState<CarDTO[]>([]);
    const [loading, setLoading] = useState(Boolean)
