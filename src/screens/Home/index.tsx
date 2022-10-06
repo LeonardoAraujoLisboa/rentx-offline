@@ -10,12 +10,17 @@ import api from '../../services/api';
 import getAccessoryIcon from '../../utils/getAccessoryIcon';
 import {Container, Header, HeaderContent, TotalCars, CarList} from './styles';
 /* import {RectButton, PanGestureHandler esse ultimo identifica quando o usuario ta clicando e tentando arrastar} from 'react-native-gesture-handler' */
+import {synchronize} from '@nozbe/watermelondb/sync'
+import { database } from '../../database';
+import {Car as ModelCar} from '../../database/model/Car'
+import { useNetInfo } from '@react-native-community/netinfo';
 
 const Home = () => {
   /*  const theme = useTheme(); */
    const navigation = useNavigation<any>();
-   const [cars, setCars] = useState<CarDTO[]>([]);
+   const [cars, setCars] = useState<ModelCar[]>([]);
    const [loading, setLoading] = useState(Boolean)
+   const netInfo = useNetInfo()
 
    /* const positionX = useSharedValue(0)
    const positionY = useSharedValue(0) */
@@ -44,6 +49,21 @@ const Home = () => {
      /*  }
    }) */
 
+   const offLineSynchronize = async () => {
+      await synchronize({
+         database,
+         pullChanges: async ({lastPulledAt}) => {
+            const {data} = await api.get(`cars/sync/pull?lasPulledVersion=${lastPulledAt || 0}`)
+            const {changes, latestVersion} = data
+            return {changes, timestamp: latestVersion}
+         },//função q vai no backend buscar as atualizações
+         pushChanges: async ({changes}) => {
+            const user = changes.users
+            await api.post(`/users/sync`, user) 
+         }//vai enviar para o backend as atualizações
+      })
+   }
+
    const handlePress = (car: CarDTO) => {
       navigation.navigate('CarDetails', {car})
    }
@@ -69,13 +89,38 @@ const Home = () => {
       navigation.navigate('MyCars');
    } */
 
-   useEffect(() => {
+   /* useEffect(() => {
       let isMounted = true
       getCars(isMounted);
       return () => {
          isMounted = false
       }//isso dai resolve o erro de performace no react do elemento desmontado
+   }, []) */
+
+   useEffect(() => {
+      let isMounted = true
+      async function fetchCars() {
+         try {
+            const carCollection = database.get<ModelCar>('cars')
+            const cars = await carCollection.query().fetch()
+            if (isMounted) {
+               setCars(cars)
+            }
+         } catch(error) {
+            console.log(error);
+         }
+      }
+      fetchCars()
+      return () => {
+         isMounted = false
+      }
    }, [])
+
+   useEffect(() => {
+      if (netInfo.isConnected === true) {
+         offLineSynchronize()
+      }
+   }, [netInfo.isConnected])
 
    /* useEffect(() => {
       let isMounted = true

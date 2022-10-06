@@ -1,19 +1,22 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { useNavigation, useRoute } from '@react-navigation/core';
 import { StatusBar, StyleSheet } from 'react-native';
 import Accessory from '../../components/Accessory';
 import BackButton from '../../components/BackButton';
 import ImageSlider from '../../components/ImageSlider';
-import {Container, Header, CarImages, Details, Description, Rent, Period, Price, Brand, Name, Accessories, About, Footer} from './styles';
+import {Container, Header, CarImages, Details, Description, Rent, Period, Price, Brand, Name, Accessories, About, Footer, OfflineInfo} from './styles';
 import Button from '../../components/Button';
+import {Car} from '../../database/model/Car'
 import {CarDTO} from '../../dtos/CarDTO'
 import getAccessoryIcon from '../../utils/getAccessoryIcon';
 import Animated, { useAnimatedScrollHandler, useSharedValue, useAnimatedStyle, interpolate, Extrapolate } from 'react-native-reanimated'
 import { getStatusBarHeight } from 'react-native-iphone-x-helper';
 import {useTheme} from 'styled-components'
+import api from '../../services/api';
+import {useNetInfo} from '@react-native-community/netinfo'
 
 interface Params {
-    car: CarDTO;
+    car: Car;
 }
 
 const CarDetails = () => {
@@ -21,6 +24,8 @@ const CarDetails = () => {
     const route = useRoute()//sao infromações que estao vindo da minha rota
     const {car} = route.params as Params
     const theme = useTheme()
+    const [carUpdated, setCarUpdated] = useState<CarDTO>({} as CarDTO)
+    const netInfo = useNetInfo()
 
     const scrollY = useSharedValue(0)
     const scrollHandler = useAnimatedScrollHandler(event => {
@@ -59,6 +64,16 @@ const CarDetails = () => {
         navigation.goBack();
     }
 
+    useEffect(() => {
+        async function fetchCarUpdated() {
+            const res = await api.get(`/cars/${car.id}`)
+            setCarUpdated(res.data)
+        }
+        if (netInfo.isConnected === true) {
+            fetchCarUpdated()
+        }
+    }, [netInfo.isConnected])
+
     return (
         <Container>
             <StatusBar barStyle='dark-content' translucent backgroundColor={'transparent'}/>
@@ -68,7 +83,7 @@ const CarDetails = () => {
                 </Header>
                 <Animated.View style={sliderCarsStyleAnimation}>
                     <CarImages>
-                        <ImageSlider imagesUrl={car.photos}/>
+                        <ImageSlider imagesUrl={!!carUpdated.photos ? carUpdated.photos : [{id: car.thumbnail, photo: car.thumbnail}]}/>
                     </CarImages>
                 </Animated.View>
             </Animated.View>
@@ -76,18 +91,18 @@ const CarDetails = () => {
                 <Details>
                     <Description>
                         <Brand>{car.brand}</Brand>
-                        <Name>{car.name}</Name>
+                        <Name>R$ {data.name}</Name>
                     </Description>
                     <Rent>
                         <Period>{car.period}</Period>
-                        <Price>R$ {car.price}</Price>
+                        <Price>R$ {netInfo.isConnected === true ? data.price : '...'}</Price>
                     </Rent>
                 </Details>
-                <Accessories>
-                    {car.accessories.map((accessory) => (
+                {carUpdated.accessories && <Accessories>
+                    {carUpdated.accessories.map((accessory) => (
                         <Accessory key={accessory.type} name={accessory.name} icon={getAccessoryIcon(accessory.type)} />
                     ))}
-                </Accessories>
+                </Accessories>}
                 <About>
                     {car.about}
                     {car.about}
@@ -97,7 +112,13 @@ const CarDetails = () => {
                 </About>
             </Animated.ScrollView>
             <Footer>
-                <Button title='Escolher o período do aluguel' onPress={handlePressConfirmRental} />
+                <Button title='Escolher o período do aluguel' onPress={handlePressConfirmRental} enabled={netInfo.isConnected === true} />
+                {
+                    netInfo.isConnected === false && 
+                    <OfflineInfo>
+                        Conecte-se a Internet para ver mais detalhes e agendar o seu carro
+                    </OfflineInfo>
+                }
             </Footer>
         </Container>
     )

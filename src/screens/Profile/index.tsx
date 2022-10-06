@@ -12,11 +12,13 @@ import { useAuth } from '../../hooks/auth'
 import * as ImagePicker from 'expo-image-picker'
 import Button from '../../components/Button'
 import * as Yup from 'yup'
+import  {useNetInfo} from '@react-native-community/netinfo'
 
 const Profile = () => {
     const theme = useTheme()
     const navigation = useNavigation()
     const {user, signOut, updateUser} = useAuth()
+    const netInfo = useNetInfo()
 
     const [option, setOption] = useState<'dataEdit' | 'passwordEdit'>('dataEdit')
     const [avatar, setAvatar] = useState(user.avatar)
@@ -87,6 +89,14 @@ const Profile = () => {
         )
     }
 
+    const handleOptionChange = (optionSelected: 'dataEdit' | 'passwordEdit') => {
+        if (netInfo.isConnected === false && optionSelected === 'passwordEdit') {
+            Alert.alert('Para mudar a senha, conecte-se a Internet')
+        } else {
+            setOption(optionSelected)
+        }
+    }    
+
     return (
         <KeyboardAvoidingView behavior='position' enabled>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -108,10 +118,10 @@ const Profile = () => {
                     </Header>
                     <Content style={{marginBottom: useBottomTabBarHeight()}}>
                         <Options>
-                            <Option active={option === 'dataEdit' ? true : false} onPress={() => setOption('dataEdit')}>
+                            <Option active={option === 'dataEdit' ? true : false} onPress={() => handleOptionChange('dataEdit')}>
                                 <OptionTitle active={option === 'dataEdit' ? true : false}>Dados</OptionTitle>
                             </Option>
-                            <Option active={option === 'passwordEdit' ? true : false} onPress={() => setOption('passwordEdit')}>
+                            <Option active={option === 'passwordEdit' ? true : false} onPress={() => handleOptionChange('passwordEdit')}>
                                 <OptionTitle active={option === 'passwordEdit' ? true : false}>Trocar senha</OptionTitle>
                             </Option>
                         </Options>

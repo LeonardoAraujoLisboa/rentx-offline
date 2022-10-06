@@ -23,6 +23,7 @@ interface AuthContextData {
     signIn: (credentials: SignCredentials) => Promise<void>;
     signOut: () => Promise<void>;
     updateUser: (user: User) => Promise<void>;
+    loading: boolean;
 }
 
 interface AuthProviderProps {
@@ -33,6 +34,7 @@ const AuthContext = createContext<AuthContextData>({} as AuthContextData)
 
 const AuthProvider = ({children}: AuthProviderProps) => {
     const [data, setData] = useState<User>({} as User)
+    const [loading, setLoading] = useState<boolean>()
 
     const signIn = async ({email, password}: SignCredentials) => {
         try {
@@ -108,6 +110,7 @@ const AuthProvider = ({children}: AuthProviderProps) => {
 
     useEffect(() => {
         async function loadUserData() {
+            setLoading(true)
             const userCollection = database.get<ModelUser>('users')
             const res = await userCollection.query().fetch()
             console.log('#### USUÁRIO LOGADO ####');
@@ -116,13 +119,14 @@ const AuthProvider = ({children}: AuthProviderProps) => {
                 const userData = res[0]._raw as unknown as User;//isso é para eu foçar uma tipagem, so colocando User ele da erro ai eu coloco unknow e dps o User
                 api.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`;
                 setData(userData)
+                setLoading(false)
             }
         }
         loadUserData()
     }, [])
 
     return (
-        <AuthContext.Provider value={{user: data, signIn, signOut, updateUser}}>
+        <AuthContext.Provider value={{user: data, signIn, signOut, updateUser, loading}}>
             {children}
         </AuthContext.Provider>
     )
