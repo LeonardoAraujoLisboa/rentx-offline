@@ -91,11 +91,11 @@ const CarDetails = () => {
                 <Details>
                     <Description>
                         <Brand>{car.brand}</Brand>
-                        <Name>R$ {data.name}</Name>
+                        <Name>R$ {car.name}</Name>
                     </Description>
                     <Rent>
                         <Period>{car.period}</Period>
-                        <Price>R$ {netInfo.isConnected === true ? data.price : '...'}</Price>
+                        <Price>R$ {netInfo.isConnected === true ? car.price : '...'}</Price>
                     </Rent>
                 </Details>
                 {carUpdated.accessories && <Accessories>

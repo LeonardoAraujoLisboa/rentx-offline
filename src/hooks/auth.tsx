@@ -34,7 +34,7 @@ const AuthContext = createContext<AuthContextData>({} as AuthContextData)
 
 const AuthProvider = ({children}: AuthProviderProps) => {
     const [data, setData] = useState<User>({} as User)
-    const [loading, setLoading] = useState<boolean>()
+    const [loading, setLoading] = useState<boolean>(false)
 
     const signIn = async ({email, password}: SignCredentials) => {
         try {

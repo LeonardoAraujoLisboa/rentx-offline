@@ -5,6 +5,7 @@ import { RectButtonProps } from 'react-native-gesture-handler';
 import { Car as Model} from '../../database/model/Car';
 import { SvgProps } from 'react-native-svg';
 /* import getAccessoryIcon from '../../utils/getAccessoryIcon'; */
+import {useNetInfo} from '@react-native-community/netinfo'
 
 interface Props extends RectButtonProps {
     data: Model
@@ -13,7 +14,8 @@ interface Props extends RectButtonProps {
 
 const Car = ({data, icon: Icon, ...rest}: Props) => {
     /* const MotorIcon = getAccessoryIcon(data.fuel_type) poderia ser fazendo assim tbm, e ai o MotorIcon voce passa la onde esta o Icon*/
-
+    const netInfo = useNetInfo()
+    
     return (
         <Container {...rest}>
             <Details>
@@ -22,7 +24,7 @@ const Car = ({data, icon: Icon, ...rest}: Props) => {
                 <About>
                     <Rent>
                         <Period>{data.period}</Period>
-                        <Price>{`R$ ${data.price}`}</Price>
+                        <Price>{`R$ ${netInfo.isConnected === true ? data.price : '...'}`}</Price>
                     </Rent>
                     <Type>
                         <Icon />
