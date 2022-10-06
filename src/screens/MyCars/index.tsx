@@ -1,38 +1,45 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { FlatList, StatusBar } from 'react-native';
 import { useTheme } from 'styled-components';
 import BackButton from '../../components/BackButton';
 import Car from '../../components/Car';
 import LoadAnimation from '../../components/LoadAnimation';
-import { CarDTO } from '../../dtos/CarDTO';
 import api from '../../services/api';
 import getAccessoryIcon from '../../utils/getAccessoryIcon';
 import {Container, Header, Title, SubTitle, Content, Apointements, AppointementsTitle, AppointmentsQuantity, CarWrapper, CarFooter, CarFooterTitle, CarFooterPeriod, CarFooterDate} from './styles';
 import {AntDesign} from '@expo/vector-icons'
+import {Car as ModelCar} from '../../database/model/Car'
+import {format, parseISO} from 'date-fns'
 
-
-interface CarProps {
+interface DataProps {
     id: string;
-    user_id: string;
-    fuel_type: string;
-    car: CarDTO;
-    startFormatted: string;
-    endFormatted: string;
+    car: ModelCar;
+    start_date: string;    
+    end_date: string;   
+    fuel_type: string; 
 }
 
 const MyCars = () => {
-    const [cars, setCars] = useState<CarProps[]>([]);
+    const [cars, setCars] = useState<DataProps[]>([]);
     const [loading, setLoading] = useState<boolean>();
     const theme = useTheme();
     const navigation = useNavigation<any>()
+    const screenIsFocus = useIsFocused()
 
     const getAllCars = async () => {
         try {
             setLoading(true);
-            const res = await api.get(`schedules_byuser?user_id=1`);
-            console.log(res.data)
-            setCars(res.data);
+            const res = await api.get(`/rentals`);
+            const dataFormatted = res.data.map((data: DataProps) => {
+                return {
+                    id: data.id,
+                    car: data.car,
+                    start_date: format(parseISO(data.start_date), 'dd/MM/yyyy'),
+                    end_date: format(parseISO(data.end_date), 'dd/MM/yyyy')
+                }
+            })
+            setCars(dataFormatted);
             setLoading(false);
         } catch(error) {
             setLoading(false);
@@ -46,7 +53,7 @@ const MyCars = () => {
 
     useEffect(() => {
         getAllCars();
-    }, [])
+    }, [screenIsFocus])
 
    return (
       <Container>
@@ -69,9 +76,9 @@ const MyCars = () => {
                             <CarFooter>
                                 <CarFooterTitle>Período</CarFooterTitle>
                                 <CarFooterPeriod>
-                                    <CarFooterDate>{item.startFormatted}</CarFooterDate>
+                                    <CarFooterDate>{item.start_date}</CarFooterDate>
                                     <AntDesign name='arrowright' size={20} color={theme.colors.text_detail} style={{marginHorizontal: 10}} />
-                                    <CarFooterDate>{item.endFormatted}</CarFooterDate>
+                                    <CarFooterDate>{item.end_date}</CarFooterDate>
                                 </CarFooterPeriod>
                             </CarFooter>
                         </CarWrapper>

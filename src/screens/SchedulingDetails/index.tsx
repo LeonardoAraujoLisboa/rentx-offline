@@ -13,6 +13,7 @@ import { CarDTO } from '../../dtos/CarDTO';
 import getAccessoryIcon from '../../utils/getAccessoryIcon';
 import {format, parseISO} from 'date-fns';
 import api from '../../services/api';
+import { useNetInfo } from '@react-native-community/netinfo';
 
 interface Params {
     car: CarDTO;
@@ -25,35 +26,34 @@ interface RentalPeriod {
 }
 
 const SchedulingDetails = () => {
+    const [carUpdated, setCarUpdated] = useState<CarDTO>({} as CarDTO)
     const [rentalPeriod, setRentalPeriod] = useState<RentalPeriod>({} as RentalPeriod)
+
     const theme = useTheme();
+    const netInfo = useNetInfo()
     const navigation = useNavigation<any>();
     const route = useRoute();
     const {car, dates} = route.params as Params;
+    
     const[loading, setLoading] = useState<boolean>()
+
+    const rentTotal = Number(dates.length * car.price)
 
     const handlePressConfirmRental = async () => {
         try {
             setLoading(true);
-            const schedulesByCar = await api.get(`/schedules_bycars/${car.id}`);
-            const unavailable_dates = [...schedulesByCar.data.unavailable_dates, ...dates];
-            setLoading(false);
             try {//poderia usar o post
                 setLoading(true);
-                await api.post(`/schedules_byuser/`, {
+                await api.post(`rentals`, {
                     user_id: 1,
-                    car,
-                    startFormatted: format(parseISO(dates[0]), 'dd/MM/yyyy'),
-                    endFormatted: format(parseISO(dates[dates.length - 1]), 'dd/MM/yyyy')
-                })//fiz o post para incluir no banco o meu id e as informações de agendamento
-                const res = await api.put(`/schedules_bycars/${car.id}`, {
-                    id: car.id,
-                    unavailable_dates
-                });
-                if (res) {
-                    setLoading(false);
+                    car_id: car.id,
+                    start_date: new Date(dates[0]),
+                    end_date: new Date(dates[dates.length - 1]),
+                    total: rentTotal
+                }).then(() => {
                     navigation.navigate('Confirmation', {title: 'Carro alugado!', message: `Agora você só precisa ir\naté a concessionário da RENTX\npegar o automóvel`, nextScreenRoute: 'Home'});
-                }
+                }) //fiz o post para incluir no banco o meu id e as informações de agendamento
+                setLoading(false);
             } catch(error) {
                 setLoading(false);
                 Alert.alert('Não foi possível confirmar o agendamento');
@@ -70,14 +70,22 @@ const SchedulingDetails = () => {
         navigation.goBack();
     }
 
-    const rentTotal = car.price * dates.length;
-
     useEffect(() => {
         setRentalPeriod({
             startFormatted: format(parseISO(dates[0]), 'dd/MM/yyyy'),
             endFormatted: format(parseISO(dates[dates.length - 1]), 'dd/MM/yyyy')
         })
     }, [])
+
+    useEffect(() => {
+        async function fetchCarUpdated() {
+            const res = await api.get(`/cars/${car.id}`)
+            setCarUpdated(res.data)
+        }
+        if (netInfo.isConnected === true) {
+            fetchCarUpdated()
+        }
+    }, [netInfo.isConnected])
 
     return (
         <Container>
@@ -86,7 +94,7 @@ const SchedulingDetails = () => {
                 <BackButton onPress={handleBack} />
             </Header>
             <CarImages>
-                <ImageSlider imagesUrl={car.photos}/>
+            <ImageSlider imagesUrl={!!carUpdated.photos ? carUpdated.photos : [{id: car.thumbnail, photo: car.thumbnail}]}/>
             </CarImages>
             <Content>
                 <Details>
@@ -99,11 +107,11 @@ const SchedulingDetails = () => {
                         <Price>R$ {car.price}</Price>
                     </Rent>
                 </Details>
-                <Accessories>
-                {car.accessories.map((accessory) => (
+                {carUpdated.accessories && <Accessories>
+                    {carUpdated.accessories.map((accessory) => (
                         <Accessory key={accessory.type} name={accessory.name} icon={getAccessoryIcon(accessory.type)} />
                     ))}
-                </Accessories>
+                </Accessories>}
                 <RentPeriod>
                     <CalendarIcon>
                         <Feather name='calendar' size={RFValue(24)} color={theme.colors.shape} />
